@@ -16,9 +16,9 @@ $masterDataSheet = $spreadsheet->createSheet();
 $masterDataSheet->setTitle('masterData');
 
 $dropdownValues = [
-    ['Kelas', '12', '13'],
-    ['Kurikulum', 'K13', 'KTSP'],
-    ['Mata Pelajaran', 'Matematika', 'Bahasa Indonesia'],
+    ['Kelas', '9A', '9B'],
+    ['Kurikulum', 'K13', 'K21'],
+    ['Mata Pelajaran', 'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS'],
     ['Semester', 'Ganjil', 'Genap'],
 ];
 $row = 1;
@@ -41,18 +41,10 @@ $academicYearCode = '2025/2026';
 $data = [
     ['Tahun Ajar', $academicYearCode],
     [],
-    ['Kelas', 'Kurikulum', 'Mata Pelajaran', 'Nama Mata pelajaran', 'Semester', 'ID Silabus', 'Bab', 'Pokok Pembahasan'],
+    ['Kelas', 'Kurikulum', 'Mata Pelajaran', 'Semester', 'ID Silabus', 'Bab', 'Pokok Pembahasan'],
 ];
 
-// Set the values for the dropdowns in the importData sheet
-$dropdowns = [
-    ['Kelas', 'masterData!$B$1:$C$1'],
-    ['Kurikulum', 'masterData!$B$2:$C$2'],
-    ['Mata Pelajaran', 'masterData!$B$3:$C$3'],
-    ['Semester', 'masterData!$B$4:$C$4'],
-];
-
-// Set the data and dropdowns in the importData sheet
+// Set the data in the importData sheet
 $row = 1;
 foreach ($data as $rowData) {
     $col = 'A';
@@ -63,21 +55,33 @@ foreach ($data as $rowData) {
     $row++;
 }
 
-$row = 1;
-foreach ($dropdowns as $dropdown) {
-    $validation = $importDataSheet->getCell('B' . $row)->getDataValidation();
-    $validation->setType(DataValidation::TYPE_LIST);
-    $validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
-    $validation->setAllowBlank(false);
-    $validation->setShowInputMessage(true);
-    $validation->setShowErrorMessage(true);
-    $validation->setShowDropDown(true);
-    $validation->setErrorTitle('Input error');
-    $validation->setError('Value is not in list');
-    $validation->setPromptTitle('Pick from list');
-    $validation->setPrompt('Please pick a value from the drop-down list');
-    $validation->setFormula1($dropdown[1]);
-    $row++;
+// Generate the columns array dynamically based on the masterData sheet
+$columns = [];
+$highestColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($masterDataSheet->getHighestColumn());
+$columns = [];
+$highestRow = $masterDataSheet->getHighestRow();
+for ($row = 1; $row <= $highestRow; $row++) {
+    $header = $masterDataSheet->getCell('A' . $row)->getValue();
+    $columns[chr(64 + $row)] = "masterData!\$B\$$row:\$" . chr(64 + $highestColumn) . "\$$row";
+}
+
+// Apply data validation for dropdowns in the importData sheet
+foreach ($columns as $col => $formula) {
+    echo 'Setting data validation for column ' . $col . PHP_EOL;
+    for ($i = 4; $i <= 10; $i++) {
+        $validation = $importDataSheet->getCell($col . $i)->getDataValidation();
+        $validation->setType(DataValidation::TYPE_LIST);
+        $validation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+        $validation->setAllowBlank(false);
+        $validation->setShowInputMessage(true);
+        $validation->setShowErrorMessage(true);
+        $validation->setShowDropDown(true);
+        $validation->setErrorTitle('Input error');
+        $validation->setError('Value is not in list');
+        $validation->setPromptTitle('Pick from list');
+        $validation->setPrompt('Please pick a value from the drop-down list');
+        $validation->setFormula1($formula);
+    }
 }
 
 // Save the spreadsheet
@@ -86,5 +90,4 @@ $writer = new Xlsx($spreadsheet);
 $writer->save('importData.xlsx');
 
 echo 'Spreadsheet created successfully' . PHP_EOL;
-
 ?>
