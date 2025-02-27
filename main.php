@@ -4,6 +4,7 @@ require_once('vendor/autoload.php');
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 // Creates New Spreadsheet
 $spreadsheet = new Spreadsheet();
@@ -58,7 +59,7 @@ foreach ($data as $rowData) {
 
 // Generate the columns array dynamically based on the masterData sheet
 $columns = [];
-$highestColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($masterDataSheet->getHighestColumn());
+$highestColumn = Coordinate::columnIndexFromString($masterDataSheet->getHighestColumn());
 $columns = [];
 $highestRow = $masterDataSheet->getHighestRow();
 for ($row = 1; $row <= $highestRow; $row++) {
